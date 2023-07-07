@@ -10,6 +10,7 @@
             >
             <div class="mt-1 relative rounded-md shadow-md">
               <input
+								v-model="newtodo"
                 type="text"
                 name="newtask"
                 id="newtask"
@@ -84,6 +85,13 @@
 <script>
 export default {
   name: "App",
+
+	data() {
+		return {
+			newtodo: "default"
+		};
+
+	}
 };
 </script>
 
