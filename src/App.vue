@@ -34,18 +34,23 @@
 					<div v-for="selTodo in todoList" :key="selTodo.todoText"
 						class="bg-white overflow-hidden shadow-lg rounded-lg border-purple-800 border-solid cursor-pointer">
 						
-						<div class="px-4 py-5 sm:p-6 text-center">
+						<div @click="changeTodoStatus(selTodo)" class="px-4 py-5 sm:p-6 text-center">
 							<dt class="text-sm font-medium text-gray-500 truncate">
 								{{ selTodo.todoStatus }}
 							</dt>
-							<dd class="mt-1 text-3xl font-semibold text-gray-900">
+							<dd
+								:class="{
+									'line-through text-gray-300':selTodo.todoStatus=='отменен',
+									'text-red-900':selTodo.todoStatus=='критический'
+								}"
+								class="mt-1 text-3xl font-semibold">
 								{{selTodo.todoText}}
 							</dd>
 						</div>
 
 						<div class="w-full border-t border-gray-200"></div>
 						<button
-						@click="handleDelete(selTodo)"
+						@click.stop="handleDelete(selTodo)"
 							class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-gray-200 hover:opacity-20 transition-all focus:outline-none">
 							<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#718096" aria-hidden="true">
 								<path fill-rule="evenodd"
@@ -73,11 +78,20 @@ export default {
 		return {
 			enter_todo_text: "",
 			todoList: [
-				{ todoText: "Текст туду1", todoStatus: "В ожидании" },
-				{ todoText: "Текст туду2", todoStatus: "Критический" },
-				{ todoText: "Текст туду3", todoStatus: "Важный" },
-				{ todoText: "Текст туду4", todoStatus: "Отменен" },
-			]
+				{ todoText: "Текст туду1", todoStatus: "ожидает" },
+				{ todoText: "Текст туду2", todoStatus: "важный" },
+				{ todoText: "Текст туду3", todoStatus: "критический" },
+				{ todoText: "Текст туду4", todoStatus: "отменен" },
+			],
+			todoStatusList: [
+				"ожидает",
+				"важный",
+				"критический",
+				"отменен"
+			],    //это не изменяемые данные, не состояния ... куда их лучше перенести? Где объявить, аналог типизированного типа СпизоскЗначений
+
+			selectedTodo: null   //потом можно за <div @click="changeTodoStatus(selTodo)" class="px-4 py-5 sm:p-6 text-center"> просто присваивать этому полю ссылку на элемент, а всю логику выполнять в вейтере
+
 		};
 	},
 
@@ -86,7 +100,7 @@ export default {
 			if (this.enter_todo_text!="") {
 					const new_todo = {
 					todoText: this.enter_todo_text,
-					todoStatus: "В ожидании"
+					todoStatus: this.getNextTodoStatus()
 				};
 
 				this.todoList.push(new_todo);
@@ -98,6 +112,23 @@ export default {
 
 		handleDelete(todoToRemove) {
 			this.todoList = this.todoList.filter(t=>t!=todoToRemove);
+		},
+
+		getNextTodoStatus(currentStatus) {
+			let indexOfCurrentStatus = this.todoStatusList.indexOf(currentStatus, 0);
+			let nextStatus = "";
+			if ((indexOfCurrentStatus==-1) || (indexOfCurrentStatus==(this.todoStatusList.length-1))) {
+				nextStatus = this.todoStatusList[0];	
+			}
+			else {
+				nextStatus = this.todoStatusList[indexOfCurrentStatus+1];
+			}
+			return nextStatus;
+		},
+
+		changeTodoStatus(currentElement) {
+			this.selectedTodo = currentElement;
+			currentElement.todoStatus = this.getNextTodoStatus(currentElement.todoStatus);
 		}
 	}
 };
