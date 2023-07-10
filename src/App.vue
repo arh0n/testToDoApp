@@ -132,7 +132,7 @@ export default {
 	computed: {
 		filtredByTextTodoList() {
 			
-			var newArr = [];
+			let newArr = [];
 
 			//фильтруем по тексту todo
 			newArr = this.todoList.filter(elTodo=>elTodo.todoText.includes(this.currentTextFilter));
@@ -142,7 +142,7 @@ export default {
 
 		filtredByStatusTodoList() {
 			
-			var newArr = [];
+			let newArr = [];
 			
 			//фильтруем по статусу todo
 			newArr = this.todoList.filter(elTodo=>elTodo.todoStatus.includes(this.currentStatusFilter));
@@ -153,9 +153,7 @@ export default {
 		hasNextpage() {
 			if (this.filtredByTextTodoList.length - this.countElementsOnPage*this.currentPage > 0 ) {
 				return true;
-			}
-			else
-			{
+			} else {
 				return false;
 			}
 		},
@@ -233,8 +231,7 @@ export default {
 			let nextStatus = "";
 			if ((indexOfCurrentStatus==-1) || (indexOfCurrentStatus==(this.todoStatusList.length-1))) {
 				nextStatus = this.todoStatusList[0];	
-			}
-			else {
+			} else {
 				nextStatus = this.todoStatusList[indexOfCurrentStatus+1];
 			}
 			return nextStatus;
