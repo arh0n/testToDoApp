@@ -29,9 +29,27 @@
 
 			<template v-if="todoList.length > 0">
 				<hr class="w-full border-t border-gray-600 my-4" />
+
+				<div>Фильтр: 
+					<input v-model="currentTextFilter" /> 
+						<button 
+							@click="currentPage = currentPage-1"
+							v-if="currentPage > 1"
+							class = "my-4 mx-2 inline-flex items-center py-1 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+							Назад
+						</button> 
+						<button
+							@click="currentPage = currentPage+1" 
+							v-if="hasNextpage"
+							class = "my-4 mx-2 inline-flex items-center py-1 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+							Вперед
+						</button>				
+				</div>
+
+				<hr class="w-full border-t border-gray-600 my-4" />
 				<dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
 
-					<div v-for="selTodo in todoList" :key="selTodo.todoText"
+					<div v-for="selTodo in forViewTodoList" :key="selTodo.index"
 						class="bg-white overflow-hidden shadow-lg rounded-lg border-purple-800 border-solid cursor-pointer">
 						
 						<div @click="changeTodoStatus(selTodo)" class="px-4 py-5 sm:p-6 text-center">
@@ -85,16 +103,103 @@ export default {
 				"отменен"
 			],    //это не изменяемые данные, не состояния ... куда их лучше перенести? Где объявить, аналог типизированного типа СпизоскЗначений
 
-			selectedTodo: null   //потом можно за <div @click="changeTodoStatus(selTodo)" class="px-4 py-5 sm:p-6 text-center"> просто присваивать этому полю ссылку на элемент, а всю логику выполнять в вейтере
+			selectedTodo: null,   //потом можно за <div @click="changeTodoStatus(selTodo)" class="px-4 py-5 sm:p-6 text-center"> просто присваивать этому полю ссылку на элемент, а всю логику выполнять в вейтере
+			
+			currentPage: 1,
+			currentTextFilter: "",
+			currentStatusFilter: "",
 
+			countElementsOnPage: 6 //количество элементов на странице
 		};
 	},
 
 	created() {
+		const windowData = Object.fromEntries(new URL(window.location).searchParams.entries());
+		if (windowData.filter) {
+			this.currentTextFilter = windowData.filter;
+		}
+		if (windowData.page) {
+			this.currentPage = windowData.page;
+		}
+
+
 		const todosData = localStorage.getItem("todo-list");
 		if (todosData) {
 			this.todoList = JSON.parse(todosData);
 		} 
+	},
+
+	computed: {
+		filtredByTextTodoList() {
+			
+			var newArr = [];
+
+			//фильтруем по тексту todo
+			newArr = this.todoList.filter(elTodo=>elTodo.todoText.includes(this.currentTextFilter));
+
+			return newArr;
+		},
+
+		filtredByStatusTodoList() {
+			
+			var newArr = [];
+			
+			//фильтруем по статусу todo
+			newArr = this.todoList.filter(elTodo=>elTodo.todoStatus.includes(this.currentStatusFilter));
+
+			return newArr;
+		},
+
+		hasNextpage() {
+			if (this.filtredByTextTodoList.length - this.countElementsOnPage*this.currentPage > 0 ) {
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		},
+
+		filtredByPageTodoList() {
+			
+			var newArr = [];
+			
+			const start = (this.currentPage-1)*this.countElementsOnPage;
+			const end = this.currentPage*this.countElementsOnPage; //for slice() end NOT included
+
+			//пагинация
+			newArr = this.filtredByTextTodoList.slice(start, end);
+
+			return newArr;
+		},
+
+		forViewTodoList() {
+			return this.filtredByPageTodoList;
+		}
+
+	},
+
+	watch: {
+		currentTextFilter() {
+			this.currentPage = 1;
+
+			//разобрать более внимательно
+			window.history.pushState(
+				null, 
+				document.title, 
+				`${window.location.pathname}?filter=${this.currentTextFilter}&page=${this.currentPage}`
+				);
+		},
+
+		currentPage() {
+			//разобрать более внимательно
+			window.history.pushState(
+				null, 
+				document.title, 
+				`${window.location.pathname}?filter=${this.currentTextFilter}&page=${this.currentPage}`
+				);
+		}
+
 	},
 
 	methods: {
@@ -110,9 +215,13 @@ export default {
 				this.enter_todo_text = "";
 				
 				localStorage.setItem("todo-list", JSON.stringify(this.todoList)); //вынести в вейтеры (обновление todoList) для обновления данных в локалстор
+			
+				this.currentTextFilter = "";
+				this.currentStatusFilter = "";
 			}
 		}, 
 
+		//при удалении, не совсем хорошо работает пагинация, наступает ситуация когда остается пустая страниица, а надо что бы currentPage изменился на -1
 		handleDelete(todoToRemove) {
 			this.todoList = this.todoList.filter(t=>t!=todoToRemove);
 
