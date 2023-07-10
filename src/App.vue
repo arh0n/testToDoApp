@@ -77,12 +77,7 @@ export default {
 	data() {
 		return {
 			enter_todo_text: "",
-			todoList: [
-				{ todoText: "Текст туду1", todoStatus: "ожидает" },
-				{ todoText: "Текст туду2", todoStatus: "важный" },
-				{ todoText: "Текст туду3", todoStatus: "критический" },
-				{ todoText: "Текст туду4", todoStatus: "отменен" },
-			],
+			todoList: [],
 			todoStatusList: [
 				"ожидает",
 				"важный",
@@ -93,6 +88,13 @@ export default {
 			selectedTodo: null   //потом можно за <div @click="changeTodoStatus(selTodo)" class="px-4 py-5 sm:p-6 text-center"> просто присваивать этому полю ссылку на элемент, а всю логику выполнять в вейтере
 
 		};
+	},
+
+	created() {
+		const todosData = localStorage.getItem("todo-list");
+		if (todosData) {
+			this.todoList = JSON.parse(todosData);
+		} 
 	},
 
 	methods: {
@@ -107,11 +109,14 @@ export default {
 
 				this.enter_todo_text = "";
 				
+				localStorage.setItem("todo-list", JSON.stringify(this.todoList)); //вынести в вейтеры (обновление todoList) для обновления данных в локалстор
 			}
 		}, 
 
 		handleDelete(todoToRemove) {
 			this.todoList = this.todoList.filter(t=>t!=todoToRemove);
+
+			localStorage.setItem("todo-list", JSON.stringify(this.todoList)); //вынести в вейтеры (обновление todoList) для обновления данных в локалстор
 		},
 
 		getNextTodoStatus(currentStatus) {
@@ -129,6 +134,8 @@ export default {
 		changeTodoStatus(currentElement) {
 			this.selectedTodo = currentElement;
 			currentElement.todoStatus = this.getNextTodoStatus(currentElement.todoStatus);
+
+			localStorage.setItem("todo-list", JSON.stringify(this.todoList)); //вынести в вейтеры (обновление todoList) для обновления данных в локалстор
 		}
 	}
 };
