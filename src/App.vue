@@ -114,6 +114,7 @@ export default {
 	},
 
 	created() {
+		//загружаем состояние фильтра и страницы из урла
 		const windowData = Object.fromEntries(new URL(window.location).searchParams.entries());
 		if (windowData.filter) {
 			this.currentTextFilter = windowData.filter;
@@ -122,7 +123,7 @@ export default {
 			this.currentPage = windowData.page;
 		}
 
-
+		//загружаем наши тудушки из локального хранилища
 		const todosData = localStorage.getItem("todo-list");
 		if (todosData) {
 			this.todoList = JSON.parse(todosData);
@@ -173,29 +174,44 @@ export default {
 
 		forViewTodoList() {
 			return this.filtredByPageTodoList;
+		},
+
+		currentPageStateOptions() {
+			return {
+				currentTextFilter: this.currentTextFilter,
+				currentPage: this.currentPage
+			}
 		}
 
 	},
 
 	watch: {
-		currentTextFilter() {
-			this.currentPage = 1;
 
-			//разобрать более внимательно
+		currentPageStateOptions(value) {
 			window.history.pushState(
 				null, 
 				document.title, 
-				`${window.location.pathname}?filter=${this.currentTextFilter}&page=${this.currentPage}`
+				`${window.location.pathname}?filter=${value.currentTextFilter}&page=${value.currentPage}`
 				);
 		},
 
-		currentPage() {
-			//разобрать более внимательно
-			window.history.pushState(
-				null, 
-				document.title, 
-				`${window.location.pathname}?filter=${this.currentTextFilter}&page=${this.currentPage}`
-				);
+		currentTextFilter() {
+			this.currentPage = 1;
+		},
+
+		filtredByPageTodoList() {
+			if (this.filtredByPageTodoList.length === 0 && this.currentPage>1) {
+				this.currentPage -= 1;
+			}
+		},
+
+		//вотч на удаление и добавление данных в наш начальный массив (может нужен модификатор deep:, что то было в документации) (отработка на добавлении и удалении тудушки - проверить)
+		todoList: {
+			handler() {
+				//срабатывает в начальной инициализации, может убрать
+				localStorage.setItem("todo-list", JSON.stringify(this.todoList)); 
+			},
+			deep:true  //можно и без дипа обойтись, но тогда при добавлении эл-та в массив надо не пушем, а обновлением ссылки делать, типа mas = [...mas, '5']
 		}
 
 	},
@@ -208,22 +224,21 @@ export default {
 					todoStatus: this.getNextTodoStatus()
 				};
 
-				this.todoList.push(new_todo);
+				this.todoList.push(new_todo);  //что бы в вотчере не использовать дип, надо здесь не пуш, а mas = [...mas, '5']
 
 				this.enter_todo_text = "";
 				
-				localStorage.setItem("todo-list", JSON.stringify(this.todoList)); //вынести в вейтеры (обновление todoList) для обновления данных в локалстор
-			
+				// перенес в вотч todoList()
 				this.currentTextFilter = "";
 				this.currentStatusFilter = "";
 			}
 		}, 
 
-		//при удалении, не совсем хорошо работает пагинация, наступает ситуация когда остается пустая страниица, а надо что бы currentPage изменился на -1
+		
 		handleDelete(todoToRemove) {
 			this.todoList = this.todoList.filter(t=>t!=todoToRemove);
 
-			localStorage.setItem("todo-list", JSON.stringify(this.todoList)); //вынести в вейтеры (обновление todoList) для обновления данных в локалстор
+			// перенес в вотч todoList() - работает.. без дип, почему? разобраться (идет ли здесь обновление ссылки?)
 		},
 
 		getNextTodoStatus(currentStatus) {
