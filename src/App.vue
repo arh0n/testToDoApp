@@ -1,7 +1,7 @@
 <template>
 	<div class="container mx-auto flex flex-col items-center bg-gray-100 p-4">
 
-		<div class="container">
+		<div class="container" ref="container_div">  <!-- кир использую реф для обучения -->
 			<section>
 				<div class="flex">
 					<div class="min-w-full">
@@ -81,7 +81,10 @@
 
 				</dl>
 				<hr class="w-full border-t border-gray-600 my-4" />
-
+				
+				<div>
+					Работа с рефом (ширина container_div): {{containerDivWidth}}
+				</div>
 			</template>
 
 		</div>
@@ -109,7 +112,9 @@ export default {
 			currentTextFilter: "",
 			currentStatusFilter: "",
 
-			countElementsOnPage: 6 //количество элементов на странице
+			countElementsOnPage: 6, //количество элементов на странице
+
+			containerDivWidth: "" //в методе будем расчитывать через подписку в маунтед на виндоус ресайз
 		};
 	},
 
@@ -128,6 +133,15 @@ export default {
 		if (todosData) {
 			this.todoList = JSON.parse(todosData);
 		} 
+		
+	},
+
+	mounted() {
+		window.addEventListener("resize", this.calculateContainerDivWidth); //подписался на события ресайза для вычисления ширины дива (можно было и в крейтед, но в маунте я показываю что для реф. мне важно наличие сформированного дома)
+	},
+
+	beforeUnmount() {
+		window.removeEventListener("resize", this.calculateContainerDivWidth); //отпишимся на всякий случай
 	},
 
 	computed: {
@@ -232,6 +246,7 @@ export default {
 				this.currentTextFilter = "";
 				this.currentStatusFilter = "";
 			}
+
 		}, 
 
 		
@@ -257,6 +272,13 @@ export default {
 			currentElement.todoStatus = this.getNextTodoStatus(currentElement.todoStatus);
 
 			localStorage.setItem("todo-list", JSON.stringify(this.todoList)); //вынести в вейтеры (обновление todoList) для обновления данных в локалстор
+		},
+
+		calculateContainerDivWidth() {
+			if (!this.$refs.container_div) {
+				return;
+			}  //предохранитель, здесь не очень важно..
+			this.containerDivWidth = this.$refs.container_div.clientWidth;
 		}
 	}
 };
