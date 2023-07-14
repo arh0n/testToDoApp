@@ -138,6 +138,7 @@ export default {
 
 	mounted() {
 		window.addEventListener("resize", this.calculateContainerDivWidth); //подписался на события ресайза для вычисления ширины дива (можно было и в крейтед, но в маунте я показываю что для реф. мне важно наличие сформированного дома)
+		this.calculateContainerDivWidth(); //вызовем при создании не дожидаясь ресайза, что бы цифра была видна сразу
 	},
 
 	beforeUnmount() {
