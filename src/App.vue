@@ -25,7 +25,7 @@
 				</div>
 
 				<hr class="w-full border-t border-gray-600 my-4" />
-				<dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+				<dl class="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-3">
 
 					<div v-for="selTodo in forViewTodoList" :key="selTodo.index"
 						class="bg-white overflow-hidden shadow-lg rounded-lg border-purple-800 border-solid cursor-pointer">
@@ -45,7 +45,9 @@
 						</div>
 
 						<div class="w-full border-t border-gray-200"></div>
-						<button
+
+						<del-button @click.stop="handleDelete(selTodo)"/>
+						<!-- <button
 						@click.stop="handleDelete(selTodo)"
 							class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-gray-200 hover:opacity-20 transition-all focus:outline-none">
 							<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#718096" aria-hidden="true">
@@ -53,7 +55,7 @@
 									d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
 									clip-rule="evenodd"></path>
 							</svg>Удалить
-						</button>
+						</button> -->
 					</div>
 
 
@@ -77,14 +79,15 @@
 // - если у нас есть тудушки, и мы производим изменение названия статуса в списке статусов, то у старых которые в локал стор. и на странице не меняется ...
 
 import AddTodo from './components/AddTodo.vue';
-
+import DelButton from './components/DelButton.vue';
 
 
 export default {
 	name: "App",
 
 	components: {
-		AddTodo
+		AddTodo,
+		DelButton
 	},
 
 	data() {
